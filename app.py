@@ -18,7 +18,10 @@ df = pd.read_csv("data/cleaned_un_data.csv")
 # ---------------------------------------------------------------------------
 app = dash.Dash(
     __name__,
-    external_stylesheets=[dbc.themes.FLATLY],
+    external_stylesheets=[
+        dbc.themes.FLATLY,
+        "https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap",
+    ],
     meta_tags=[
         {"name": "viewport", "content": "width=device-width, initial-scale=1"},
     ],
@@ -50,6 +53,11 @@ SLIDER_MARKS = {yr: str(yr) for yr in range(YEAR_MIN, YEAR_MAX + 1, 10)}
 app.layout = dbc.Container(
     fluid=True,
     className="px-5 py-4",
+    style={
+        "fontFamily": "'Inter', sans-serif",
+        "backgroundColor": "#f8fafc",
+        "minHeight": "100vh",
+    },
     children=[
         # --- Header ---
         dbc.Row(
@@ -58,7 +66,11 @@ app.layout = dbc.Container(
                     html.H1(
                         "Global Demographic Explorer",
                         className="text-center mt-2 mb-3",
-                        style={"fontWeight": "600", "letterSpacing": "0.5px"},
+                        style={
+                            "fontWeight": "700",
+                            "letterSpacing": "0.5px",
+                            "color": "#1e293b",
+                        },
                     ),
                     dbc.Row(
                         dbc.Col(
@@ -85,17 +97,33 @@ app.layout = dbc.Container(
         dbc.Row(
             [
                 dbc.Col(
-                    dcc.Graph(
-                        id="choropleth-map",
-                        style={"height": "520px"},
+                    dbc.Card(
+                        dcc.Graph(
+                            id="choropleth-map",
+                            style={"height": "520px"},
+                        ),
+                        style={
+                            "border": "none",
+                            "borderRadius": "12px",
+                            "boxShadow": "0 4px 6px rgba(0, 0, 0, 0.05)",
+                            "backgroundColor": "white",
+                        },
                     ),
                     width=8,
                     className="pe-2",
                 ),
                 dbc.Col(
-                    dcc.Graph(
-                        id="line-chart",
-                        style={"height": "520px"},
+                    dbc.Card(
+                        dcc.Graph(
+                            id="line-chart",
+                            style={"height": "520px"},
+                        ),
+                        style={
+                            "border": "none",
+                            "borderRadius": "12px",
+                            "boxShadow": "0 4px 6px rgba(0, 0, 0, 0.05)",
+                            "backgroundColor": "white",
+                        },
                     ),
                     width=4,
                     className="ps-2",
@@ -184,10 +212,17 @@ def update_choropleth(selected_metric, selected_year):
     )
 
     fig.update_layout(
+        font_family="Inter",
         margin={"r": 0, "t": 0, "l": 0, "b": 0},
         coloraxis_colorbar={"title": bar_title},
         paper_bgcolor="rgba(0,0,0,0)",
         geo_bgcolor="rgba(0,0,0,0)",
+        hoverlabel=dict(
+            bgcolor="white",
+            font_size=13,
+            font_family="Inter",
+            font_color="#1e293b",
+        ),
     )
 
     fig.update_geos(
@@ -224,10 +259,11 @@ def update_line_chart(click_data, selected_metric, selected_year):
             font={"size": 14, "color": "#999999"},
         )
         fig.update_layout(
+            font_family="Inter",
             xaxis={"visible": False},
             yaxis={"visible": False},
-            plot_bgcolor="white",
-            paper_bgcolor="white",
+            plot_bgcolor="rgba(0,0,0,0)",
+            paper_bgcolor="rgba(0,0,0,0)",
             margin={"r": 20, "t": 20, "l": 20, "b": 20},
         )
         return fig
@@ -257,8 +293,9 @@ def update_line_chart(click_data, selected_metric, selected_year):
     )
 
     fig.update_layout(
-        plot_bgcolor="white",
-        paper_bgcolor="white",
+        font_family="Inter",
+        plot_bgcolor="rgba(0,0,0,0)",
+        paper_bgcolor="rgba(0,0,0,0)",
         margin={"r": 15, "t": 45, "l": 15, "b": 15},
         yaxis_title=selected_metric,
         xaxis=dict(gridcolor="#eeeeee"),
