@@ -1,5 +1,6 @@
 """Global Demographic Explorer -- Dash application entry point."""
 
+import numpy as np
 import pandas as pd
 import dash
 from dash import dcc, html, Input, Output, State
@@ -48,7 +49,7 @@ SLIDER_MARKS = {yr: str(yr) for yr in range(YEAR_MIN, YEAR_MAX + 1, 10)}
 # ---------------------------------------------------------------------------
 app.layout = dbc.Container(
     fluid=True,
-    className="px-4 py-3",
+    className="px-5 py-4",
     children=[
         # --- Header ---
         dbc.Row(
@@ -56,7 +57,8 @@ app.layout = dbc.Container(
                 [
                     html.H1(
                         "Global Demographic Explorer",
-                        className="text-center my-2",
+                        className="text-center mt-2 mb-3",
+                        style={"fontWeight": "600", "letterSpacing": "0.5px"},
                     ),
                     dbc.Row(
                         dbc.Col(
@@ -66,11 +68,15 @@ app.layout = dbc.Container(
                                 value="Population",
                                 clearable=False,
                                 placeholder="Select a metric",
+                                style={
+                                    "borderRadius": "6px",
+                                    "fontSize": "0.95rem",
+                                },
                             ),
-                            width=4,
+                            width={"size": 4, "offset": 0},
                         ),
                         justify="center",
-                        className="mb-3",
+                        className="mb-4",
                     ),
                 ]
             )
@@ -79,15 +85,23 @@ app.layout = dbc.Container(
         dbc.Row(
             [
                 dbc.Col(
-                    dcc.Graph(id="choropleth-map"),
+                    dcc.Graph(
+                        id="choropleth-map",
+                        style={"height": "520px"},
+                    ),
                     width=8,
+                    className="pe-2",
                 ),
                 dbc.Col(
-                    dcc.Graph(id="line-chart"),
+                    dcc.Graph(
+                        id="line-chart",
+                        style={"height": "520px"},
+                    ),
                     width=4,
+                    className="ps-2",
                 ),
             ],
-            className="g-3",
+            className="g-3 mb-2",
         ),
         # --- Footer / Timeline ---
         dbc.Row(
@@ -146,21 +160,45 @@ app.layout = dbc.Container(
 )
 def update_choropleth(selected_metric, selected_year):
     """Return a choropleth figure filtered by year and coloured by metric."""
-    dff = df[df["Year"] == selected_year]
+    dff = df[df["Year"] == selected_year].copy()
+
+    # Use a log-10 colour scale for Population to prevent outlier washout.
+    if selected_metric == "Population":
+        dff["_color"] = np.log10(dff["Population"].clip(lower=1))
+        color_col = "_color"
+        bar_title = "Population (log10)"
+    else:
+        color_col = selected_metric
+        bar_title = selected_metric
 
     fig = px.choropleth(
         data_frame=dff,
         locations="ISO3",
-        color=selected_metric,
+        color=color_col,
         hover_name="Country",
+        hover_data={selected_metric: True, "_color": False}
+        if selected_metric == "Population"
+        else {selected_metric: True},
         projection="natural earth",
         color_continuous_scale="Viridis",
-        labels={selected_metric: selected_metric},
     )
 
     fig.update_layout(
         margin={"r": 0, "t": 0, "l": 0, "b": 0},
-        coloraxis_colorbar={"title": selected_metric},
+        coloraxis_colorbar={"title": bar_title},
+        paper_bgcolor="rgba(0,0,0,0)",
+        geo_bgcolor="rgba(0,0,0,0)",
+    )
+
+    fig.update_geos(
+        showframe=False,
+        showcoastlines=True,
+        coastlinecolor="#cccccc",
+        showland=True,
+        landcolor="#f0f0f0",
+        showocean=True,
+        oceancolor="#fafafa",
+        showlakes=False,
     )
 
     return fig
@@ -170,25 +208,27 @@ def update_choropleth(selected_metric, selected_year):
     Output("line-chart", "figure"),
     Input("choropleth-map", "clickData"),
     Input("metric-dropdown", "value"),
+    Input("year-slider", "value"),
 )
-def update_line_chart(click_data, selected_metric):
+def update_line_chart(click_data, selected_metric, selected_year):
     """Return a line chart for the clicked country, or an empty prompt."""
     if click_data is None:
         fig = go.Figure()
         fig.add_annotation(
-            text="Click on a country on the map to see its historical trend.",
+            text="Click on a country on the map<br>to see its historical trend.",
             xref="paper",
             yref="paper",
             x=0.5,
             y=0.5,
             showarrow=False,
-            font={"size": 14, "color": "grey"},
+            font={"size": 14, "color": "#999999"},
         )
         fig.update_layout(
             xaxis={"visible": False},
             yaxis={"visible": False},
             plot_bgcolor="white",
-            margin={"r": 10, "t": 10, "l": 10, "b": 10},
+            paper_bgcolor="white",
+            margin={"r": 20, "t": 20, "l": 20, "b": 20},
         )
         return fig
 
@@ -204,9 +244,25 @@ def update_line_chart(click_data, selected_metric):
         labels={selected_metric: selected_metric, "Year": "Year"},
     )
 
+    # Vertical indicator for the currently selected year on the slider.
+    fig.add_vline(
+        x=selected_year,
+        line_dash="dash",
+        line_color="#aaaaaa",
+        line_width=1,
+        annotation_text=str(selected_year),
+        annotation_position="top",
+        annotation_font_size=10,
+        annotation_font_color="#888888",
+    )
+
     fig.update_layout(
         plot_bgcolor="white",
-        margin={"r": 10, "t": 40, "l": 10, "b": 10},
+        paper_bgcolor="white",
+        margin={"r": 15, "t": 45, "l": 15, "b": 15},
+        yaxis_title=selected_metric,
+        xaxis=dict(gridcolor="#eeeeee"),
+        yaxis=dict(gridcolor="#eeeeee"),
     )
 
     return fig
