@@ -2,7 +2,7 @@
 
 import pandas as pd
 import dash
-from dash import dcc, html, Input, Output
+from dash import dcc, html, Input, Output, State
 import dash_bootstrap_components as dbc
 import plotly.express as px
 import plotly.graph_objects as go
@@ -124,6 +124,13 @@ app.layout = dbc.Container(
             ),
             className="mt-3",
         ),
+        # --- Interval timer for playback ---
+        dcc.Interval(
+            id="play-interval",
+            interval=500,
+            n_intervals=0,
+            disabled=True,
+        ),
     ],
 )
 
@@ -203,6 +210,33 @@ def update_line_chart(click_data, selected_metric):
     )
 
     return fig
+
+
+@dash.callback(
+    Output("play-interval", "disabled"),
+    Output("play-pause-btn", "children"),
+    Input("play-pause-btn", "n_clicks"),
+    State("play-interval", "disabled"),
+    prevent_initial_call=True,
+)
+def toggle_play_pause(n_clicks, currently_disabled):
+    """Toggle the interval timer and swap button label between Play/Pause."""
+    if currently_disabled:
+        return False, "Pause"
+    return True, "Play"
+
+
+@dash.callback(
+    Output("year-slider", "value"),
+    Input("play-interval", "n_intervals"),
+    State("year-slider", "value"),
+    prevent_initial_call=True,
+)
+def advance_year(n_intervals, current_year):
+    """Increment the slider by one year, looping back to 1950 after 2023."""
+    if current_year >= YEAR_MAX:
+        return YEAR_MIN
+    return current_year + 1
 
 
 # ---------------------------------------------------------------------------
