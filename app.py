@@ -2,8 +2,10 @@
 
 import pandas as pd
 import dash
-from dash import dcc, html
+from dash import dcc, html, Input, Output
 import dash_bootstrap_components as dbc
+import plotly.express as px
+import plotly.graph_objects as go
 
 # ---------------------------------------------------------------------------
 # Data
@@ -124,6 +126,84 @@ app.layout = dbc.Container(
         ),
     ],
 )
+
+# ---------------------------------------------------------------------------
+# Callbacks
+# ---------------------------------------------------------------------------
+
+
+@dash.callback(
+    Output("choropleth-map", "figure"),
+    Input("metric-dropdown", "value"),
+    Input("year-slider", "value"),
+)
+def update_choropleth(selected_metric, selected_year):
+    """Return a choropleth figure filtered by year and coloured by metric."""
+    dff = df[df["Year"] == selected_year]
+
+    fig = px.choropleth(
+        data_frame=dff,
+        locations="ISO3",
+        color=selected_metric,
+        hover_name="Country",
+        projection="natural earth",
+        color_continuous_scale="Viridis",
+        labels={selected_metric: selected_metric},
+    )
+
+    fig.update_layout(
+        margin={"r": 0, "t": 0, "l": 0, "b": 0},
+        coloraxis_colorbar={"title": selected_metric},
+    )
+
+    return fig
+
+
+@dash.callback(
+    Output("line-chart", "figure"),
+    Input("choropleth-map", "clickData"),
+    Input("metric-dropdown", "value"),
+)
+def update_line_chart(click_data, selected_metric):
+    """Return a line chart for the clicked country, or an empty prompt."""
+    if click_data is None:
+        fig = go.Figure()
+        fig.add_annotation(
+            text="Click on a country on the map to see its historical trend.",
+            xref="paper",
+            yref="paper",
+            x=0.5,
+            y=0.5,
+            showarrow=False,
+            font={"size": 14, "color": "grey"},
+        )
+        fig.update_layout(
+            xaxis={"visible": False},
+            yaxis={"visible": False},
+            plot_bgcolor="white",
+            margin={"r": 10, "t": 10, "l": 10, "b": 10},
+        )
+        return fig
+
+    iso3 = click_data["points"][0]["location"]
+    dff = df[df["ISO3"] == iso3].sort_values("Year")
+    country_name = dff["Country"].iloc[0]
+
+    fig = px.line(
+        data_frame=dff,
+        x="Year",
+        y=selected_metric,
+        title=country_name,
+        labels={selected_metric: selected_metric, "Year": "Year"},
+    )
+
+    fig.update_layout(
+        plot_bgcolor="white",
+        margin={"r": 10, "t": 40, "l": 10, "b": 10},
+    )
+
+    return fig
+
 
 # ---------------------------------------------------------------------------
 # Run
