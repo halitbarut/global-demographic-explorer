@@ -18,15 +18,14 @@ This project is an interactive, standalone web dashboard built with Python, Plot
 ### Installation
 We provide multiple setup options. We recommend using the `requirements.txt` to replicate the evaluation environment.
 
-Option A — Standard (Recommended):
+Option A - Standard (Recommended):
 ```bash
 pip install -r requirements.txt
 ```
 
-Option B — Modern package managers (alternative):
-If you prefer a fast resolver and the repo contains a `pyproject.toml`, you can use modern tools (e.g., `uv`) or install the package in editable mode:
+Option B - Modern package managers (alternative):
 ```bash
-# Using uv (ultra-fast resolver):
+# Using uv:
 uv sync
 
 # Or install via pip from pyproject.toml:
