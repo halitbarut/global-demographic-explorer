@@ -131,6 +131,10 @@ app.layout = dbc.Container(
             ),
             dbc.Col(
                 dbc.Card([
+                    html.H5("", id="chart-country-title", style={
+                        "position": "absolute", "top": "20px", "right": "60px", "zIndex": 1000, 
+                        "margin": "0", "fontWeight": "700", "color": "#1e293b"
+                    }),
                     dbc.Button("✕", id="close-chart-btn", color="light", style={
                         "position": "absolute", "top": "15px", "right": "15px", "zIndex": 1000, "borderRadius": "50%",
                         "width": "32px", "height": "32px", "padding": "0", "display": "flex", "alignItems": "center", "justifyContent": "center", "boxShadow": "0 2px 4px rgba(0,0,0,0.1)", "fontWeight": "bold"
@@ -272,18 +276,20 @@ def update_choropleth(metric: str, sex: str, age: str, selected_year: int) -> go
 
 @dash.callback(
     Output("line-chart", "figure"),
+    Output("chart-country-title", "children"), 
     Input("choropleth-map", "clickData"), 
     Input("metric-dropdown", "value"), 
     Input("sex-dropdown", "value"), 
     Input("age-dropdown", "value"), 
     Input("year-slider", "value"),
 )
-def update_line_chart(click_data: dict | None, metric: str, sex: str, age: str, selected_year: int) -> go.Figure:
+def update_line_chart(click_data: dict | None, metric: str, sex: str, age: str, selected_year: int) -> tuple[go.Figure, str]:
     """
-    Generates a historical trend line chart for the specifically selected country.
+    Generates a historical trend line chart for the specifically selected country
+    and updates the card title with the country name.
     """
     if click_data is None: 
-        return go.Figure()
+        return go.Figure(), ""
 
     iso3 = click_data["points"][0]["location"]
     dff = df[df["ISO3"] == iso3].sort_values("Year")
@@ -309,7 +315,7 @@ def update_line_chart(click_data: dict | None, metric: str, sex: str, age: str, 
         xaxis=dict(gridcolor="#eeeeee"), yaxis=dict(gridcolor="#eeeeee")
     )
     
-    return fig
+    return fig, country_name
 
 
 @dash.callback(

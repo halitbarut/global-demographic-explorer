@@ -16,20 +16,10 @@ This project is an interactive, standalone web dashboard built with Python, Plot
 ## 3. Usage & Installation
 
 ### Installation
-We provide multiple setup options. We recommend using the `requirements.txt` to replicate the evaluation environment.
+Use the setup Option from the `requirements.txt` to replicate the evaluation environment.
 
-Option A - Standard (Recommended):
 ```bash
 pip install -r requirements.txt
-```
-
-Option B - Modern package managers (alternative):
-```bash
-# Using uv:
-uv sync
-
-# Or install via pip from pyproject.toml:
-pip install .
 ```
 
 ### Running the Application
@@ -45,8 +35,8 @@ Open your browser (Chrome or Firefox recommended) and navigate to `http://127.0.
 - **Zoom & Details:** Hover to view precise values in tooltips. Click a country to open the line chart on the right.
 - **Reset:** Close the line chart via the ✕ button to return to the full-screen map.
 
-## 4. Screenshots
-
+## 4. Screenshot
+![Overview](image/Overview.png)
 
 ## 5. Data & Sources
 - **Data Source:** United Nations, Department of Economic and Social Affairs, Population Division (2024). World Population Prospects 2024, Online Edition.
